@@ -1,7 +1,7 @@
 # 😊ລະບົບຫຼັງບ້ານຈັດການຂໍ້ມູນຄຳສັບພາສາລາວ
 
 <p align="center">
-  <img src="assets/images/Flag_of_Laos.jpeg" width="200"/>
+  <img src="assets/images/Flag_of_Laos.png" width="200"/>
 </p>
 
 ## Getting Started

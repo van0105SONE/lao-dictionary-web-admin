@@ -1,0 +1,1 @@
+ALTER TABLE "lao_dictionary" ADD COLUMN "meaning" text NOT NULL;

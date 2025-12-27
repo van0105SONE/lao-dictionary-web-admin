@@ -1,0 +1,1 @@
+ALTER TABLE "example_sentences" DROP COLUMN "language";

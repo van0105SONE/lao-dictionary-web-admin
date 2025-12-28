@@ -297,7 +297,6 @@ export default function Words() {
           <TableHeader>
             <TableRow>
               <TableHead>Word</TableHead>
-              <TableHead>Meaning</TableHead>
               <TableHead>Definitions</TableHead>
               <TableHead>Examples</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>

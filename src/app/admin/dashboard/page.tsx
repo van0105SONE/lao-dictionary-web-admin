@@ -116,7 +116,7 @@ export default function Dashboard() {
                 <div>
                   <p className="text-sm text-foreground">
                     <span className="font-medium">{word.word}</span>{" "}
-                    <span className="text-primary">{word.meaning}</span>
+                    <span className="text-primary">{word.pronunciation}</span>
                   </p>
       
                 </div>

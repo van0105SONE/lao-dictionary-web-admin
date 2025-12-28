@@ -36,5 +36,4 @@ export async function getCurrentUser() {
 
 export async function logout() {
   (await cookies()).delete(SESSION_COOKIE);
-  redirect("/login");
 }

@@ -27,12 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
 import { User } from "@/types";
@@ -56,6 +51,7 @@ export default function Users() {
     role: "viewer" as User["role"],
     status: "active" as User["status"],
   });
+
   const { toast } = useToast();
 
   const loadData = async () => {
@@ -385,37 +381,45 @@ export default function Users() {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                placeholder="Enter your password"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm password</Label>
-              <Input
-                id="confirm-password"
-                name="confirm_password"
-                type="password"
-                value={formData.confirm_password}
-                onChange={(e) =>
-                  setFormData({ ...formData, confirm_password: e.target.value })
-                }
-                placeholder="Enter confirm password"
-                required
-              />
-            </div>
+            {!editingUser && (
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+            )}
+
+            {!editingUser && (
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm password</Label>
+                <Input
+                  id="confirm-password"
+                  name="confirm_password"
+                  type="password"
+                  value={formData.confirm_password}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      confirm_password: e.target.value,
+                    })
+                  }
+                  placeholder="Enter confirm password"
+                  required
+                />
+              </div>
+            )}
 
             {/* Show error if passwords don't match */}
-            {formData.confirm_password &&
+            {!editingUser  && formData.confirm_password &&
               formData.password !== formData.confirm_password && (
                 <p className="text-sm text-destructive">
                   Passwords do not match
@@ -434,6 +438,7 @@ export default function Users() {
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="SuperAdmin">SuperAdmin</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                     <SelectItem value="editor">Editor</SelectItem>
                     <SelectItem value="viewer">Viewer</SelectItem>

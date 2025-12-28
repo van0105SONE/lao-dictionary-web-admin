@@ -32,7 +32,7 @@ export default function Login() {
       });
 
       const data = await res.json();
-      console.log('result: ', data)
+      console.log("result: ", data);
       if (res.ok && data.success) {
         toast({
           title: "Welcome back!",
@@ -70,7 +70,7 @@ export default function Login() {
               Welcome back
             </h1>
             <p className="text-muted-foreground">
-              Sign in to manage your dictionary
+              Sign in to manage Our lao dictionary
             </p>
           </div>
 
@@ -127,7 +127,8 @@ export default function Login() {
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-8">
-            Demo: Use any email and password (min 6 chars)
+            ທົດລອງໃຊ້ລະບົບຈັດເກັບຄຳສັບພາສາລາວ, ເພື່ອໃຫ້ການເຂົ້າເຖິ່ງພາສາລາວ ແລະ
+            ຣຽນຮູ້ພາສາລາວຜ່ານໂລກ internet ສະດວກ ແລະ ງ່າຍຂື້ນ😊
           </p>
         </div>
       </div>
@@ -135,23 +136,26 @@ export default function Login() {
       {/* Right side - Decorative */}
       <div className="hidden lg:flex flex-1 gradient-sky items-center justify-center p-12">
         <div className="text-center text-primary-foreground max-w-md">
-          <h2 className="text-4xl font-bold mb-4">Dictionary Admin</h2>
+          <h2 className="text-4xl font-bold mb-4">ຄັ່ງລ່ວມຄຳສັບພາສາລາວ🌍</h2>
           <p className="text-lg opacity-90">
-            Manage words, definitions, and examples with ease. Build and
-            maintain your comprehensive dictionary database.
+            ຄັງຄຳສັບພາສາລາວສ້າງຂຶ້ນມາໂດຍມີຈຸດປະສົ່ງເພື່ອໃຫ້ການເຂົ້າ ເຖິ່ງພາສາລາວ
+            ແລະ ຮຽນຮູ້ພາສາລາວງ່າຍຂື້ນ.
+            ຢາກເຊີນຊວນອາສາສະໝັກທຸກຄົນມາຮ່ວມຜູ້ບັນທຶກຂໍ້ມູນ ແລະ
+            ເພີຍແພ່ຂໍ້ມູນພາສາລາວນຳກັນ,
+            ເພື່ອຍົກລະດັບຄວາມດ້ານພາສາລາວຂອງຫນຸ່ມທີ່ນັບຫນ້ອຍຖອຍລົງ
           </p>
           <div className="mt-12 grid grid-cols-3 gap-6 text-center">
             <div>
-              <div className="text-4xl font-bold">500+</div>
-              <div className="text-sm opacity-80">Words</div>
+              <div className="text-4xl font-bold">0+</div>
+              <div className="text-sm opacity-80">ຄຳສັບ</div>
             </div>
             <div>
-              <div className="text-4xl font-bold">1.2k</div>
-              <div className="text-sm opacity-80">Examples</div>
+              <div className="text-4xl font-bold">0+</div>
+              <div className="text-sm opacity-80">ຕົວຢ່າງປະໂຫຍກ</div>
             </div>
             <div>
-              <div className="text-4xl font-bold">50</div>
-              <div className="text-sm opacity-80">Users</div>
+              <div className="text-4xl font-bold">1</div>
+              <div className="text-sm opacity-80">Contributor</div>
             </div>
           </div>
         </div>

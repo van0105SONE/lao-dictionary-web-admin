@@ -32,7 +32,6 @@ export async function POST(request: Request) {
       error: "Word is required",
     });
   } else if (
-    !body["meaning"] ||
     !body["part_of_speech"] ||
     !body["pronunciation"]
   ) {
@@ -47,9 +46,8 @@ export async function POST(request: Request) {
 
   const response = await wordService.createWord({
     word: body["word"],
-    meaning: body["meaning"],
     part_of_speech: body["part_of_speech"],
-    pronunciation: body["pronunciation"],
+    pronuncation: body["pronunciation"],
     definitions: definitions.map((item) => {
       return {
         language: item.language,

@@ -17,7 +17,6 @@ export interface Word {
   part_of_speech: string;
   pronunciation: string;
   definitions: Definition[];
-  meaning: string;
   examples: Example[];
   createdAt: Date;
   updatedAt: Date;

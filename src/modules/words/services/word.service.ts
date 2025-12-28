@@ -145,9 +145,8 @@ export const wordService = {
 
   createWord: async (data: {
     word: string;
-    pronunciation: string;
+    pronuncation: string;
     part_of_speech: string;
-    meaning: string;
     definitions: { language: string; text: string }[];
     examples: { text: string }[];
   }) => {
@@ -157,12 +156,13 @@ export const wordService = {
         .insert(dictionary)
         .values({
           word: data.word,
-          meaning: data.meaning,
-          pronunciation: data.pronunciation,
+          pronunciation: data.pronuncation,
           part_of_speech: data.part_of_speech,
           search_count: 0,
         })
         .returning();
+
+      console.log("insert result ====> ", result);
 
       const defintion = await db
         .insert(definitions)
@@ -199,7 +199,6 @@ export const wordService = {
       word: string;
       pronunciation: string;
       part_of_speech: string;
-      meaning: string;
       definitions: {
         id: number;
         definitionId: number;
@@ -209,7 +208,7 @@ export const wordService = {
       examples: { id: number; exampleId: number; text: string }[];
     }
   ) => {
-    console.log('update request ====> ', data)
+    console.log("update request ====> ", data);
     const definition = await db
       .select()
       .from(definitions)
@@ -247,8 +246,8 @@ export const wordService = {
         .where(eq(exampleSentences.id, item.id));
       if (exampleSentence.length <= 0) {
         await db.insert(exampleSentences).values({
-           exampleId: example[0].id,
-           text: item.text
+          exampleId: example[0].id,
+          text: item.text,
         });
       } else {
         await db

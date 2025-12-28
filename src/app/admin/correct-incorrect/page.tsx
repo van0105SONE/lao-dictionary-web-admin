@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Plus, Search, Pencil, Trash2, Check, X } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Check, X, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,13 @@ import {
 
 import { CorrectIncorrectWord } from "@/types";
 import { useToast } from "@/app/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function CorrectIncorrect() {
   const [loading, setLoading] = useState(false);
@@ -91,7 +97,7 @@ export default function CorrectIncorrect() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    setLoading(true);
     if (editingPair) {
       editingPair.correct_word = formData.correct_word;
       editingPair.incorrect_word = formData.incorrect_word;
@@ -124,7 +130,9 @@ export default function CorrectIncorrect() {
         description: "The word pair has been added.",
       });
     }
+    setLoading(false);
     setIsDialogOpen(false);
+    await loadData()
   };
 
   const handleDelete = async (id: number) => {
@@ -140,7 +148,7 @@ export default function CorrectIncorrect() {
       description: "The word pair has been removed.",
     });
 
-     await loadData();
+    await loadData();
   };
 
   return (
@@ -350,9 +358,18 @@ export default function CorrectIncorrect() {
               >
                 Cancel
               </Button>
-              <Button type="submit">
-                {editingPair ? "Update" : "Add"} Pair
-              </Button>
+              {loading ? (
+                <Button disabled={loading}>
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Creating...
+                  </span>
+                </Button>
+              ) : (
+                <Button type="submit">
+                  {editingPair ? "Update" : "Add"} Pair
+                </Button>
+              )}
             </div>
           </form>
         </DialogContent>

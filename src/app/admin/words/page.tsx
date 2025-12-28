@@ -8,6 +8,7 @@ import {
   Trash2,
   Globe,
   MessageSquare,
+  Loader2,
 } from "lucide-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -42,6 +43,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/app/hooks/use-toast";
 
 const LANGUAGES = [
+  { code: "la", name: "Lao" },
   { code: "en", name: "English" },
   { code: "th", name: "Thai" },
   { code: "zh", name: "Chinese" },
@@ -53,18 +55,19 @@ const LANGUAGES = [
 ];
 
 export default function Words() {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [words, setWords] = useState<Word[]>([]);
   const [search, setSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingWord, setEditingWord] = useState<Word | null>(null);
   const [formData, setFormData] = useState({
     word: "",
-    meaning: "",
     part_of_speech: "",
     pronunciation: "",
     definitions: [] as Definition[],
     examples: [] as Example[],
   });
+
   const [definitions, setDefinitions] = useState<Definition[]>([
     { id: 0, definitionId: 0, language: "en", text: "" },
   ]);
@@ -103,7 +106,6 @@ export default function Words() {
       setEditingWord(word);
       setFormData({
         word: word.word,
-        meaning: word.meaning,
         pronunciation: word.pronunciation,
         part_of_speech: word.part_of_speech,
         definitions: word.definitions,
@@ -123,7 +125,6 @@ export default function Words() {
       setEditingWord(null);
       setFormData({
         word: "",
-        meaning: "",
         pronunciation: "",
         part_of_speech: "",
         definitions: [],
@@ -183,6 +184,7 @@ export default function Words() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setIsLoading(true);
     const examplesArray = examples.filter((ex) => ex.text.trim());
     const validDefinitions = definitions.filter((d) => d.text.trim());
 
@@ -198,7 +200,6 @@ export default function Words() {
     if (editingWord) {
       editingWord.word = formData.word;
       editingWord.pronunciation = formData.pronunciation;
-      editingWord.meaning = formData.meaning;
       editingWord.part_of_speech = formData.part_of_speech;
       editingWord.definitions = validDefinitions;
       editingWord.examples = examplesArray;
@@ -243,6 +244,7 @@ export default function Words() {
         description: `"${formData.word}" has been added.`,
       });
     }
+    setIsLoading(false);
     setIsDialogOpen(false);
   };
 
@@ -306,9 +308,6 @@ export default function Words() {
               <TableRow key={word.id}>
                 <TableCell className="font-medium text-primary">
                   {word.word}
-                </TableCell>
-                <TableCell className="font-medium text-primary">
-                  {word.meaning}
                 </TableCell>
                 <TableCell className="max-w-md">
                   <div className="space-y-1">
@@ -450,19 +449,6 @@ export default function Words() {
                   setFormData({ ...formData, word: e.target.value })
                 }
                 placeholder="Enter the word"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="meaning">Meaning</Label>
-              <Textarea
-                id="meaning"
-                value={formData.meaning}
-                onChange={(e) =>
-                  setFormData({ ...formData, meaning: e.target.value })
-                }
-                placeholder="Enter the meaning"
                 required
               />
             </div>
@@ -613,16 +599,28 @@ export default function Words() {
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">
-                {editingWord ? "Update" : "Add"} Word
-              </Button>
+              {isLoading ? (
+                <Button disabled={isLoading}>
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Creating...
+                  </span>
+                  
+                </Button>
+              ) : (
+                <div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    {editingWord ? "Update" : "Add"} Word
+                  </Button>
+                </div>
+              )}
             </div>
           </form>
         </DialogContent>

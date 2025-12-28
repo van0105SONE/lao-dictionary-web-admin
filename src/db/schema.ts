@@ -4,9 +4,9 @@ import {
   uuid,
   varchar,
   timestamp,
-  boolean,
   integer,
   text,
+  index,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -19,15 +19,20 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const dictionary = pgTable("lao_dictionary", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  word: text("word").notNull(),
-  meaning: text("meaning").notNull(),
-  pronunciation: text("pronunciation").notNull(),
-  part_of_speech: text("part_of_speech"),
-  search_count: integer("search_count"),
-  created_at: timestamp().defaultNow().notNull(),
-});
+export const dictionary = pgTable(
+  "lao_dictionary",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    word: text("word").notNull(),
+    pronunciation: text("pronunciation").notNull(),
+    part_of_speech: text("part_of_speech"),
+    search_count: integer("search_count"),
+    created_at: timestamp().defaultNow().notNull(),
+  },
+  (table) => ({
+    wordIdx: index("dictionary_word_idx").on(table.word), // ← Add this
+  })
+);
 
 export const definitions = pgTable("definitions", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -69,10 +74,16 @@ export const exampleSentences = pgTable("example_sentences", {
   text: text("text").notNull(),
 });
 
-export const correct_and_incorrect = pgTable("correct_and_incorrect", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  correct_word: text("correct_word").notNull(),
-  incorrect_word: text("incorrect_word").notNull(),
-  explanation: text("explanation"),
-  word_id: integer("word_id").references(() => dictionary.id),
-});
+export const correct_and_incorrect = pgTable(
+  "correct_and_incorrect",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    correct_word: text("correct_word").notNull(),
+    incorrect_word: text("incorrect_word").notNull(),
+    explanation: text("explanation"),
+    word_id: integer("word_id").references(() => dictionary.id),
+  },
+  (table) => ({
+    incorrectWordIdx: index("correct_incorrect_idx").on(table.correct_word), // ← Add this
+  })
+);

@@ -21,16 +21,16 @@ export const correctIncorrectService = {
     let correctIncorrect: any[] = await query
       .limit(limit)
       .offset((page - 1) * limit);
-
+   const total = totalCountResult[0].count;
     return {
       words: correctIncorrect,
       pagination: {
         page,
         limit,
         total: totalCountResult[0].count,
-        totalPages: Number.isNaN(Math.ceil(Number(totalCountResult) / limit))
+        totalPages: Number.isNaN(Math.ceil(Number(total) / limit))
           ? 0
-          : Math.ceil(Number(totalCountResult) / limit),
+          : Math.ceil(Number(total) / limit),
       },
     };
   },

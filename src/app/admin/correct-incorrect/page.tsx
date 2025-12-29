@@ -78,7 +78,7 @@ export default function CorrectIncorrect() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [page, limit]);
 
   const handleOpenDialog = (pair?: CorrectIncorrectWord) => {
     if (pair) {
@@ -132,7 +132,7 @@ export default function CorrectIncorrect() {
     }
     setLoading(false);
     setIsDialogOpen(false);
-    await loadData()
+    await loadData();
   };
 
   const handleDelete = async (id: number) => {

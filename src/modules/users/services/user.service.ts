@@ -39,14 +39,16 @@ export async function getAllUsers(
     .limit(limit)
     .offset((page - 1) * limit)
     .orderBy(users.createdAt);
-
+  
+  const total = totalCountResult[0].count;
+  
   return {
     users: result,
     pagination: {
       page,
       limit,
-      total: totalCountResult[0].count,
-      totalPages: Math.ceil(Number(totalCountResult) / limit),
+      total: total,
+      totalPages: Math.ceil(Number(total) / limit),
     },
   };
 }

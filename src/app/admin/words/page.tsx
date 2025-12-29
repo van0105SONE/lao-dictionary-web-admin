@@ -69,7 +69,7 @@ export default function Words() {
   });
 
   const [definitions, setDefinitions] = useState<Definition[]>([
-    { id: 0, definitionId: 0, language: "en", text: "" },
+    { id: 0, definitionId: 0, language: "la", text: "" },
   ]);
   const [examples, setExamples] = useState<Example[]>([
     { id: 0, exampleId: 0, text: "" },
@@ -92,14 +92,15 @@ export default function Words() {
 
     if (!res.ok) throw new Error("Failed to fetch");
     const data = await res.json();
-
+    
     setWords(data.words);
     setTotalPages(data.pagination.totalPages);
     setPage(data.pagination.page);
+
   };
   useEffect(() => {
     loadData();
-  }, []);
+  }, [page, limit]);
 
   const handleOpenDialog = (word?: Word) => {
     if (word) {
@@ -114,7 +115,7 @@ export default function Words() {
       setDefinitions(
         word.definitions.length > 0
           ? word.definitions
-          : [{ id: 0, definitionId: 0, language: "en", text: "" }]
+          : [{ id: 0, definitionId: 0, language: "la", text: "" }]
       );
       setExamples(
         word.examples.length > 0
@@ -130,7 +131,7 @@ export default function Words() {
         definitions: [],
         examples: [],
       });
-      setDefinitions([{ id: 0, definitionId: 0, language: "en", text: "" }]);
+      setDefinitions([{ id: 0, definitionId: 0, language: "la", text: "" }]);
       setExamples([{ id: 0, exampleId: 0, text: "" }]);
     }
     setIsDialogOpen(true);
@@ -604,7 +605,6 @@ export default function Words() {
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Creating...
                   </span>
-                  
                 </Button>
               ) : (
                 <div>

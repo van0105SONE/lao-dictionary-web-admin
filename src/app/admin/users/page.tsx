@@ -103,7 +103,7 @@ export default function Users() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [page, limit]);
 
   const getRoleBadge = (role: User["role"]) => {
     const variants = {
@@ -148,7 +148,6 @@ export default function Users() {
       },
     });
 
-    console.log("delete response: ", response);
     toast({
       title: "User deleted",
       description: `User has been removed.`,

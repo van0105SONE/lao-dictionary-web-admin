@@ -10,6 +10,7 @@ import {
 } from "@/db/schema";
 
 import { count, eq, like } from "drizzle-orm";
+import { toast } from "sonner";
 
 export const wordService = {
   getAllword: async (search?: string, page = 0, limit = 10) => {
@@ -61,15 +62,17 @@ export const wordService = {
       item.examples = exampleDetails[0];
     }
 
+    const total =  totalCountResult[0].count;
+
     return {
       words: words,
       pagination: {
         page,
         limit,
-        total: totalCountResult[0].count,
-        totalPages: Number.isNaN(Math.ceil(Number(totalCountResult) / limit))
+        total: total,
+        totalPages: Number.isNaN(Math.ceil(Number(total) / limit))
           ? 0
-          : Math.ceil(Number(totalCountResult) / limit),
+          : Math.ceil(Number(total) / limit),
       },
     };
   },

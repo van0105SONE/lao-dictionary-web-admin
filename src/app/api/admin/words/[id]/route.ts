@@ -20,8 +20,9 @@ export async function PUT(
   const { id } = await params;
   const body = await request.json();
 
-  const isSuccess = await wordService.updateWord(Number(id), body);
+  const response = await wordService.updateWord(Number(id), body);
   return NextResponse.json({
-    success: isSuccess,
+    success: response.is_success,
+    message: response.message,
   });
 }

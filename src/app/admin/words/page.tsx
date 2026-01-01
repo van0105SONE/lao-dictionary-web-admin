@@ -69,7 +69,7 @@ export default function Words() {
   });
 
   const [definitions, setDefinitions] = useState<Definition[]>([
-    { id: 0, definitionId: 0, language: "la", text: "" },
+    { id: 0, definitionId: 0, language: "la", text: "", kind: "" },
   ]);
   const [examples, setExamples] = useState<Example[]>([
     { id: 0, exampleId: 0, text: "" },
@@ -92,12 +92,12 @@ export default function Words() {
 
     if (!res.ok) throw new Error("Failed to fetch");
     const data = await res.json();
-    
+
     setWords(data.words);
     setTotalPages(data.pagination.totalPages);
     setPage(data.pagination.page);
-
   };
+
   useEffect(() => {
     loadData();
   }, [page, limit]);
@@ -115,7 +115,7 @@ export default function Words() {
       setDefinitions(
         word.definitions.length > 0
           ? word.definitions
-          : [{ id: 0, definitionId: 0, language: "la", text: "" }]
+          : [{ id: 0, definitionId: 0, language: "la", text: "", kind: "" }]
       );
       setExamples(
         word.examples.length > 0
@@ -131,7 +131,9 @@ export default function Words() {
         definitions: [],
         examples: [],
       });
-      setDefinitions([{ id: 0, definitionId: 0, language: "la", text: "" }]);
+      setDefinitions([
+        { id: 0, definitionId: 0, language: "la", text: "", kind: "" },
+      ]);
       setExamples([{ id: 0, exampleId: 0, text: "" }]);
     }
     setIsDialogOpen(true);
@@ -145,7 +147,13 @@ export default function Words() {
     if (availableLanguage) {
       setDefinitions([
         ...definitions,
-        { id: 0, definitionId: 0, language: availableLanguage.code, text: "" },
+        {
+          id: 0,
+          definitionId: 0,
+          language: availableLanguage.code,
+          text: "",
+          kind: "",
+        },
       ]);
     }
   };
@@ -158,7 +166,7 @@ export default function Words() {
 
   const handleDefinitionChange = (
     index: number,
-    field: "language" | "text",
+    field: "language" | "text" | "kind",
     value: string
   ) => {
     const updated = [...definitions];
@@ -210,17 +218,23 @@ export default function Words() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(editingWord),
       });
 
-      toast({
-        title: "Word updated",
-        description: `"${formData.word}" has been updated.`,
-      });
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: "Word updated",
+          description: result.success
+            ? `"${formData.word}" has been updated.`
+            : `Failed to update ${formData.word}  `,
+        });
+      }
     } else {
       try {
         formData.examples = examplesArray;
         formData.definitions = validDefinitions;
+
         const response = await fetch("/api/admin/words", {
           method: "POST",
           headers: {
@@ -231,10 +245,20 @@ export default function Words() {
 
         if (response.ok) {
           const result = await response.json();
+
+          console.log("create result: ", result);
+          toast({
+            title: "Word created",
+            description: result.success
+              ? `"${formData.word}" has been created.`
+              : `Failed to create ${formData.word}  `,
+          });
+
           setIsDialogOpen(false);
-          console.log("result: ", result);
-        } else {
-          console.log("error");
+          toast({
+            title: "Word created",
+            description: "Something went wrong",
+          });
         }
       } catch (err) {
         console.log("created error: ", err);
@@ -366,31 +390,32 @@ export default function Words() {
           </TableBody>
         </Table>
         {/* Pagination Controls */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/30">
-          <div className="flex items-center gap-4">
-            <p className="text-sm text-muted-foreground">
-              Page {page} of {totalPages}
+        {/* Mobile-Friendly Pagination */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-border bg-muted/30">
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+            <p className="text-sm text-muted-foreground text-center sm:text-left">
+              Page {page} of {totalPages} ({words.length} items)
             </p>
 
             <Select
               value={limit.toString()}
-              onValueChange={(value) => {
-                setLimit(Number(value));
-                setPage(1); // Reset to first page
+              onValueChange={(v) => {
+                setLimit(Number(v));
+                setPage(1);
               }}
             >
-              <SelectTrigger className="w-24">
+              <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="10">10 per page</SelectItem>
-                <SelectItem value="20">20 per page</SelectItem>
-                <SelectItem value="50">50 per page</SelectItem>
+                <SelectItem value="10">10 / page</SelectItem>
+                <SelectItem value="20">20 / page</SelectItem>
+                <SelectItem value="50">50 / page</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
             <Button
               variant="outline"
               size="sm"
@@ -400,24 +425,25 @@ export default function Words() {
               Previous
             </Button>
 
-            {/* Optional: Show page numbers */}
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNum = i + 1;
-              return (
+            <div className="flex gap-1">
+              {Array.from(
+                { length: Math.min(5, totalPages) },
+                (_, i) => i + 1
+              ).map((num) => (
                 <Button
-                  key={pageNum}
-                  variant={page === pageNum ? "default" : "outline"}
+                  key={num}
+                  variant={page === num ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setPage(pageNum)}
+                  onClick={() => setPage(num)}
+                  className="w-10"
                 >
-                  {pageNum}
+                  {num}
                 </Button>
-              );
-            })}
-
-            {totalPages > 5 && (
-              <span className="px-3 text-sm text-muted-foreground">...</span>
-            )}
+              ))}
+              {totalPages > 5 && (
+                <span className="px-2 text-sm text-muted-foreground">...</span>
+              )}
+            </div>
 
             <Button
               variant="outline"
@@ -496,35 +522,65 @@ export default function Words() {
                 </Button>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {definitions.map((def, index) => (
                   <div
                     key={index}
-                    className="flex gap-2 items-start p-3 bg-muted/50 rounded-lg"
+                    className="p-4 bg-muted/50 rounded-lg border border-border/50 space-y-3"
                   >
-                    <Select
-                      value={def.language}
-                      onValueChange={(value) =>
-                        handleDefinitionChange(index, "language", value)
-                      }
-                    >
-                      <SelectTrigger className="w-32 shrink-0">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {LANGUAGES.map((lang) => (
-                          <SelectItem
-                            key={lang.code}
-                            value={lang.code}
-                            disabled={definitions.some(
-                              (d, i) => i !== index && d.language === lang.code
-                            )}
-                          >
-                            {lang.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {/* Language Selector + Part of Speech + Remove */}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      {/* Language */}
+                      <div className="flex-1 sm:max-w-32">
+                        <Select
+                          value={def.language}
+                          onValueChange={(value) =>
+                            handleDefinitionChange(index, "language", value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {LANGUAGES.map((lang) => (
+                              <SelectItem key={lang.code} value={lang.code}>
+                                {lang.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Part of Speech for this definition */}
+                      <div className="flex-1">
+                        <Input
+                          placeholder="Part of speech (e.g. noun, verb)"
+                          value={def.kind || ""}
+                          onChange={(e) =>
+                            handleDefinitionChange(
+                              index,
+                              "kind",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </div>
+
+                      {/* Remove button */}
+                      {definitions.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveDefinition(index)}
+                          className="shrink-0 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Definition Text */}
                     <Textarea
                       value={def.text}
                       onChange={(e) =>
@@ -533,19 +589,9 @@ export default function Words() {
                       placeholder={`Definition in ${getLanguageName(
                         def.language
                       )}`}
-                      className="flex-1 min-h-[60px]"
+                      className="min-h-[80px]"
+                      required
                     />
-                    {definitions.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveDefinition(index)}
-                        className="shrink-0 text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
                   </div>
                 ))}
               </div>

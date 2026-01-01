@@ -25,7 +25,6 @@ export async function POST(request: Request) {
   }
   const body = await request.json();
 
-  console.log('incoming body: ', body)
   if (!body["word"]) {
     return NextResponse.json({
       success: false,
@@ -41,7 +40,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const definitions: { language: string; text: string }[] = body["definitions"];
+  const definitions: { language: string; text: string, kind: string }[] = body["definitions"];
   const examples = body["examples"];
 
   const response = await wordService.createWord({
@@ -52,13 +51,15 @@ export async function POST(request: Request) {
       return {
         language: item.language,
         text: item.text,
+        kind: item.kind
       };
     }),
     examples: examples,
   });
 
   return NextResponse.json({
-    success: true,
+    success: response.is_success,
+    message: response.message,
     word: response,
   });
 }

@@ -1,6 +1,7 @@
 export interface Definition {
   language: string;
   text: string;
+  kind: string;
   definitionId: number;
   id: number;
 }

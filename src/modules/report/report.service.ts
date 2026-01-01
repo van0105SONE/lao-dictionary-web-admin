@@ -14,22 +14,34 @@ import { count, eq, like } from "drizzle-orm";
 
 export const reportService = {
   getDashboard: async () => {
-    const totalCountResult = await db
-      .select({ count: count() })
-      .from(dictionary);
-    const totalCountUser = await db.select({ count: count() }).from(users);
-    const totalCorrectIncorrect = await db
-      .select({ count: count() })
-      .from(correct_and_incorrect);
-    const totalExample = await db
-      .select({ count: count() })
-      .from(exampleSentences);
+
+
+    // Run all 4 queries in parallel
+    const [
+      totalWordsResult,
+      totalUsersResult,
+      totalCorrectIncorrectResult,
+      totalExamplesResult,
+    ] = await Promise.all([
+      db.select({ count: count() }).from(dictionary),
+      db.select({ count: count() }).from(users),
+      db.select({ count: count() }).from(correct_and_incorrect),
+      db.select({ count: count() }).from(exampleSentences),
+    ]);
+
+    // Extract the actual numbers (each result is an array with one object)
+    const totalWords = totalWordsResult[0]?.count ?? 0;
+    const totalUsers = totalUsersResult[0]?.count ?? 0;
+    const totalCorrectIncorrect = totalCorrectIncorrectResult[0]?.count ?? 0;
+    const totalExamples = totalExamplesResult[0]?.count ?? 0;
+
+
 
     return {
-      total_active_user: totalCountUser[0].count,
-      total_word: totalCountResult[0].count,
-      total_incorrect: totalCorrectIncorrect[0].count,
-      total_example: totalExample[0].count,
+      total_active_user: totalUsers,
+      total_word: totalWords,
+      total_incorrect: totalCorrectIncorrect,
+      total_example: totalExamples,
     };
   },
 };

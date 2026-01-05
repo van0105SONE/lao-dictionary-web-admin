@@ -80,7 +80,7 @@ export const correctIncorrectService = {
     await db
       .update(correct_and_incorrect)
       .set({
-        incorrect_word: data.correct_word,
+        incorrect_word: data.incorrect_word,
         correct_word: data.correct_word,
         explanation: data.explaination,
       })

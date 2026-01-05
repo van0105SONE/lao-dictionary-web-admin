@@ -102,7 +102,7 @@ export default function CorrectIncorrect() {
       editingPair.correct_word = formData.correct_word;
       editingPair.incorrect_word = formData.incorrect_word;
       editingPair.explanation = formData.explanation;
-
+      console.log('edit word: ', editingPair)
       const response = await fetch(
         "/api/admin/correct-incorrect/" + editingPair.id,
         {

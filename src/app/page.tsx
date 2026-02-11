@@ -67,17 +67,17 @@ export default function Login() {
               <BookOpen className="w-8 h-8 text-primary-foreground" />
             </div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Welcome back
+              ຍິນດີຕ້ອນຮັບ!
             </h1>
             <p className="text-muted-foreground">
-              Sign in to manage Our lao dictionary
+              ເຂົ້າສູ່ລະບົບແລະ ຈັດເກັບ ຄຳສັບພາສາລາວ
             </p>
           </div>
 
           {/* Form uses formAction instead of onSubmit */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">ອີເມວ</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
@@ -94,7 +94,7 @@ export default function Login() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">ລະຫັດຜ່ານ</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
@@ -115,11 +115,11 @@ export default function Login() {
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  Signing in...
+                  ກຳລັງເຂົ້າສູ່ລະບົບ...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  Sign in
+                  ເຂົ້າສູ່ລະບົບ
                   <ArrowRight className="w-4 h-4" />
                 </span>
               )}
@@ -127,7 +127,7 @@ export default function Login() {
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-8">
-            ທົດລອງໃຊ້ລະບົບຈັດເກັບຄຳສັບພາສາລາວ, ເພື່ອໃຫ້ການເຂົ້າເຖິ່ງພາສາລາວ ແລະ
+            ທົດລອງໃຊ້ລະບົບຈັດເກັບຄຳສັບພາສາລາວ, ເພື່ອການເຂົ້າເຖິງພາສາລາວ ແລະ
             ຣຽນຮູ້ພາສາລາວຜ່ານໂລກ internet ສະດວກ ແລະ ງ່າຍຂື້ນ😊
           </p>
         </div>
@@ -138,26 +138,12 @@ export default function Login() {
         <div className="text-center text-primary-foreground max-w-md">
           <h2 className="text-4xl font-bold mb-4">ຄັ່ງລ່ວມຄຳສັບພາສາລາວ🌍</h2>
           <p className="text-lg opacity-90">
-            ຄັງຄຳສັບພາສາລາວສ້າງຂຶ້ນມາໂດຍມີຈຸດປະສົ່ງເພື່ອໃຫ້ການເຂົ້າ ເຖິ່ງພາສາລາວ
-            ແລະ ຮຽນຮູ້ພາສາລາວງ່າຍຂື້ນ.
-            ຢາກເຊີນຊວນອາສາສະໝັກທຸກຄົນມາຮ່ວມຜູ້ບັນທຶກຂໍ້ມູນ ແລະ
-            ເພີຍແພ່ຂໍ້ມູນພາສາລາວນຳກັນ,
-            ເພື່ອຍົກລະດັບຄວາມດ້ານພາສາລາວຂອງຫນຸ່ມທີ່ນັບຫນ້ອຍຖອຍລົງ
+            ຄັງຄຳສັບພາສາລາວສ້າງຂຶ້ນໂດຍມີຈຸດປະສົງເພື່ອໃຫ້ການເຂົ້າເຖິງ ແລະ
+            ການຮຽນຮູ້ພາສາລາວງ່າຍຂຶ້ນ.
+            ພວກເຮົາຂໍເຊີນຊວນອາສາສະໝັກທຸກທ່ານມາຮ່ວມບັນທຶກ ແລະ
+            ເຜີຍແຜ່ຂໍ້ມູນພາສາລາວນຳກັນ
+            ເພື່ອຍົກລະດັບຄວາມຮູ້ດ້ານພາສາລາວໃຫ້ແກ່ໄວໜຸ່ມໃນຍຸກປັດຈຸບັນ.
           </p>
-          <div className="mt-12 grid grid-cols-3 gap-6 text-center">
-            <div>
-              <div className="text-4xl font-bold">0+</div>
-              <div className="text-sm opacity-80">ຄຳສັບ</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold">0+</div>
-              <div className="text-sm opacity-80">ຕົວຢ່າງປະໂຫຍກ</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold">1</div>
-              <div className="text-sm opacity-80">Contributor</div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

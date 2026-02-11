@@ -9,7 +9,7 @@ import {
   users,
 } from "@/db/schema";
 
-import { count, desc, eq, like } from "drizzle-orm";
+import { count, desc, eq, like, inArray } from "drizzle-orm";
 
 export const wordService = {
   getAllword: async (search?: string, page = 0, limit = 10) => {
@@ -28,41 +28,70 @@ export const wordService = {
 
     let words: any[] = await query.limit(limit).offset((page - 1) * limit);
 
-    for (const item of words) {
-      const defs = await db
+    // Batch fetch all related data
+    const wordIds = words.map(w => w.id);
+    
+    // Fetch all definitions and examples in parallel
+    const [allDefinitions, allExamples] = await Promise.all([
+      db
         .select()
         .from(definitions)
-        .where(eq(definitions.wordId, item.id));
-
-      const definitionDetails = await Promise.all(
-        defs.map(async (d) => {
-          const texts = await db
-            .select()
-            .from(definitionTexts)
-            .where(eq(definitionTexts.definitionId, d.id));
-          return texts;
-        })
-      );
-
-      // fetch examples + example sentences
-      const exs = await db
+        .where(inArray(definitions.wordId, wordIds)),
+      db
         .select()
         .from(examples)
-        .where(eq(examples.wordId, item.id));
+        .where(inArray(examples.wordId, wordIds)),
+    ]);
 
-      const exampleDetails = await Promise.all(
-        exs.map(async (e) => {
-          const sentences = await db
+    // Fetch definition texts and example sentences in parallel
+    const definitionIds = allDefinitions.map(d => d.id);
+    const exampleIds = allExamples.map(e => e.id);
+
+    const [allDefinitionTexts, allExampleSentences] = await Promise.all([
+      definitionIds.length > 0
+        ? db
+            .select()
+            .from(definitionTexts)
+            .where(inArray(definitionTexts.definitionId, definitionIds))
+        : Promise.resolve([]),
+      exampleIds.length > 0
+        ? db
             .select()
             .from(exampleSentences)
-            .where(eq(exampleSentences.exampleId, e.id));
-          return sentences;
-        })
-      );
+            .where(inArray(exampleSentences.exampleId, exampleIds))
+        : Promise.resolve([]),
+    ]);
 
-      item.definitions = definitionDetails[0];
-      item.examples = exampleDetails[0];
-    }
+    // Group data by word in memory
+    const definitionsByWordId = new Map<number, any[]>();
+    const examplesByWordId = new Map<number, any[]>();
+
+    allDefinitions.forEach(def => {
+      if (!definitionsByWordId.has(def.wordId)) {
+        definitionsByWordId.set(def.wordId, []);
+      }
+      const texts = allDefinitionTexts.filter(
+        dt => dt.definitionId === def.id
+      );
+      definitionsByWordId.get(def.wordId)!.push(...texts);
+    });
+
+    allExamples.forEach(ex => {
+      if (!examplesByWordId.has(ex.wordId)) {
+        examplesByWordId.set(ex.wordId, []);
+      }
+      const sentences = allExampleSentences.filter(
+        es => es.exampleId === ex.id
+      );
+      examplesByWordId.get(ex.wordId)!.push(...sentences);
+    });
+
+    // Attach grouped data to words
+    words = words.map(word => ({
+      ...word,
+      definitions: definitionsByWordId.get(word.id) || [],
+      examples: examplesByWordId.get(word.id) || [],
+    }));
 
     const total = totalCountResult[0].count;
 
@@ -80,42 +109,52 @@ export const wordService = {
   },
 
   getWordDetails: async (wordId: number) => {
-    // fetch definitions + definition texts
-    const defs = await db
-      .select()
-      .from(definitions)
-      .where(eq(definitions.wordId, wordId));
+    // Fetch word, definitions, examples in parallel
+    const [word, wordDefinitions, wordExamples] = await Promise.all([
+      db.select().from(dictionary).where(eq(dictionary.id, wordId)),
+      db
+        .select()
+        .from(definitions)
+        .where(eq(definitions.wordId, wordId)),
+      db
+        .select()
+        .from(examples)
+        .where(eq(examples.wordId, wordId)),
+    ]);
 
-    const definitionDetails = await Promise.all(
-      defs.map(async (d) => {
-        const texts = await db
-          .select()
-          .from(definitionTexts)
-          .where(eq(definitionTexts.definitionId, d.id));
-        return { ...d, texts };
-      })
-    );
+    // Fetch definition texts and example sentences in parallel
+    const definitionIds = wordDefinitions.map(d => d.id);
+    const exampleIds = wordExamples.map(e => e.id);
 
-    // fetch examples + example sentences
-    const exs = await db
-      .select()
-      .from(examples)
-      .where(eq(examples.wordId, wordId));
+    const [allDefinitionTexts, allExampleSentences] = await Promise.all([
+      definitionIds.length > 0
+        ? db
+            .select()
+            .from(definitionTexts)
+            .where(inArray(definitionTexts.definitionId, definitionIds))
+        : Promise.resolve([]),
+      exampleIds.length > 0
+        ? db
+            .select()
+            .from(exampleSentences)
+            .where(inArray(exampleSentences.exampleId, exampleIds))
+        : Promise.resolve([]),
+    ]);
 
-    const exampleDetails = await Promise.all(
-      exs.map(async (e) => {
-        const sentences = await db
-          .select()
-          .from(exampleSentences)
-          .where(eq(exampleSentences.exampleId, e.id));
-        return { ...e, sentences };
-      })
-    );
+    // Group definition texts by definition id
+    const definitionDetails = wordDefinitions.map(def => ({
+      ...def,
+      texts: allDefinitionTexts.filter(dt => dt.definitionId === def.id),
+    }));
+
+    // Group example sentences by example id
+    const exampleDetails = wordExamples.map(ex => ({
+      ...ex,
+      sentences: allExampleSentences.filter(es => es.exampleId === ex.id),
+    }));
 
     return {
-      word: (
-        await db.select().from(dictionary).where(eq(dictionary.id, wordId))
-      )[0],
+      word: word[0],
       definitions: definitionDetails,
       examples: exampleDetails,
     };
@@ -123,26 +162,37 @@ export const wordService = {
 
   deleteWord: async (wordId: number) => {
     try {
-      const definition = await db
-        .select()
-        .from(definitions)
-        .where(eq(definitions.wordId, wordId));
+      const [definitions_list, examples_list] = await Promise.all([
+        db
+          .select()
+          .from(definitions)
+          .where(eq(definitions.wordId, wordId)),
+        db
+          .select()
+          .from(examples)
+          .where(eq(examples.wordId, wordId)),
+      ]);
 
-      const example = await db
-        .select()
-        .from(examples)
-        .where(eq(examples.wordId, wordId));
+      const definitionIds = definitions_list.map(d => d.id);
+      const exampleIds = examples_list.map(e => e.id);
 
-      await db.delete(definitions).where(eq(definitions.wordId, wordId));
-      await db.delete(examples).where(eq(examples.wordId, wordId));
-      await db
-        .delete(definitionTexts)
-        .where(eq(definitionTexts.definitionId, definition[0].id));
-      await db
-        .delete(exampleSentences)
-        .where(eq(exampleSentences.exampleId, example[0].id));
+      // Delete in parallel
+      await Promise.all([
+        db.delete(definitions).where(eq(definitions.wordId, wordId)),
+        db.delete(examples).where(eq(examples.wordId, wordId)),
+        definitionIds.length > 0
+          ? db
+              .delete(definitionTexts)
+              .where(inArray(definitionTexts.definitionId, definitionIds))
+          : Promise.resolve(),
+        exampleIds.length > 0
+          ? db
+              .delete(exampleSentences)
+              .where(inArray(exampleSentences.exampleId, exampleIds))
+          : Promise.resolve(),
+      ]);
+
       return await db.delete(dictionary).where(eq(dictionary.id, wordId));
-      // cascades for definitions/examples via Drizzle foreign keys
     } catch (err) {
       console.log("err: ", err);
     }
@@ -243,6 +293,34 @@ export const wordService = {
         .from(examples)
         .where(eq(examples.wordId, id));
 
+      // Get all existing definitions and examples
+      const existingDefinitions = await db
+        .select()
+        .from(definitionTexts)
+        .where(eq(definitionTexts.definitionId, definition[0].id));
+
+      const existingExamples = await db
+        .select()
+        .from(exampleSentences)
+        .where(eq(exampleSentences.exampleId, example[0].id));
+
+      // Delete definitions that are not in the request
+      const definitionsToDelete = existingDefinitions.filter(
+        existing => !data.definitions.some(d => d.id === existing.id)
+      );
+      for (const defToDelete of definitionsToDelete) {
+        await db.delete(definitionTexts).where(eq(definitionTexts.id, defToDelete.id));
+      }
+
+      // Delete examples that are not in the request
+      const exampleSentencesToDelete = existingExamples.filter(
+        existing => !data.examples.some(e => e.id === existing.id)
+      );
+      for (const exToDelete of exampleSentencesToDelete) {
+        await db.delete(exampleSentences).where(eq(exampleSentences.id, exToDelete.id));
+      }
+
+      // Insert or update definitions
       for (const item of data.definitions) {
         const defintionText = await db
           .select()
@@ -263,6 +341,7 @@ export const wordService = {
         }
       }
 
+      // Insert or update examples
       for (const item of data.examples) {
         const exampleSentence = await db
           .select()

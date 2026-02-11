@@ -20,25 +20,25 @@ interface AdminLayoutProps {
 const navItems = [
   {
     path: "/admin/dashboard",
-    label: "Dashboard",
+    label: "ໜ້າຫຼັກ",
     icon: LayoutDashboard,
     roles: ["superadmin", "admin", "editor"],
   },
   {
     path: "/admin/words",
-    label: "Words",
+    label: "ຄຳສັບ",
     icon: BookOpen,
     roles: ["superadmin", "admin", "editor"],
   },
   {
     path: "/admin/correct-incorrect",
-    label: "Correct/Incorrect",
+    label: "ຖືກ ແລະ ຜິດ",
     icon: CheckCircle,
     roles: ["superadmin", "admin", "editor"],
   },
   {
     path: "/admin/users",
-    label: "Users",
+    label: "ຜູ້ໃຊ້ງານ",
     icon: Users,
     roles: ["superadmin"],
   },
@@ -58,7 +58,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading user...</p>
+        <p className="text-muted-foreground">ໂຫລດຂໍ້ມູນ...</p>
       </div>
     );
   }
@@ -81,8 +81,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <BookOpen className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-bold text-foreground">Dictionary</h1>
-            <p className="text-xs text-muted-foreground">Admin Panel</p>
+            <h1 className="font-bold text-foreground">ຄັງຄຳສັບພາສາລາວ</h1>
+            <p className="text-xs text-muted-foreground">ໜ້າຈັດການຂໍ້ມູນ</p>
           </div>
         </div>
         <button
@@ -112,8 +112,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <BookOpen className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-bold text-foreground">Dictionary</h1>
-              <p className="text-xs text-muted-foreground">Admin Panel</p>
+              <h1 className="font-bold text-foreground">ຄັງຄຳສັບພາສາລາວ</h1>
+              <p className="text-xs text-muted-foreground">ໜ້າຈັດການຂໍ້ມູນ</p>
             </div>
           </div>
         </div>
@@ -164,7 +164,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             className="flex items-center gap-3 px-4 py-2.5 w-full rounded-lg text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
           >
             <LogOut className="w-4 h-4" />
-            Logout
+            ອອກຈາກລະບົບ
           </button>
         </div>
       </aside>

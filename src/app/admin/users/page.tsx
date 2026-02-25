@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Plus,
   Search,
@@ -8,6 +8,7 @@ import {
   Trash2,
   Shield,
   User as UserIcon,
+  Loader2,
 } from "lucide-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -27,11 +28,93 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
 import { User } from "@/types";
 import { useToast } from "@/app/hooks/use-toast";
+
+/** Shared responsive pagination */
+function Pagination({
+  page,
+  totalPages,
+  limit,
+  onPageChange,
+  onLimitChange,
+}: {
+  page: number;
+  totalPages: number;
+  limit: number;
+  onPageChange: (p: number) => void;
+  onLimitChange: (l: number) => void;
+}) {
+  return (
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t border-border bg-muted/30">
+      <div className="flex items-center gap-3">
+        <p className="text-sm text-muted-foreground whitespace-nowrap">
+          Page {page} of {totalPages}
+        </p>
+        <Select
+          value={limit.toString()}
+          onValueChange={(value) => {
+            onLimitChange(Number(value));
+            onPageChange(1);
+          }}
+        >
+          <SelectTrigger className="w-28">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="10">10 / page</SelectItem>
+            <SelectItem value="20">20 / page</SelectItem>
+            <SelectItem value="50">50 / page</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex items-center gap-1 flex-wrap">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(Math.max(1, page - 1))}
+          disabled={page === 1}
+        >
+          Previous
+        </Button>
+        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+          const pageNum = i + 1;
+          return (
+            <Button
+              key={pageNum}
+              variant={page === pageNum ? "default" : "outline"}
+              size="sm"
+              onClick={() => onPageChange(pageNum)}
+            >
+              {pageNum}
+            </Button>
+          );
+        })}
+        {totalPages > 5 && (
+          <span className="px-2 text-sm text-muted-foreground">…</span>
+        )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+          disabled={page === totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function Users() {
   const [loading, setLoading] = useState(false);
@@ -39,7 +122,7 @@ export default function Users() {
   const [search, setSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  // Pagination state
+
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -60,11 +143,8 @@ export default function Users() {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
-        // You can add search later: search: search
       });
-
       const res = await fetch(`/api/admin/users?${params}`);
-
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
       setUsers(data.users);
@@ -72,7 +152,6 @@ export default function Users() {
       setPage(data.pagination.page);
     } catch (err) {
       console.error(err);
-      // Optional: show toast error
     } finally {
       setLoading(false);
     }
@@ -106,20 +185,20 @@ export default function Users() {
   }, [page, limit]);
 
   const getRoleBadge = (role: User["role"]) => {
-    const variants = {
+    const variants: Record<string, string> = {
       SuperAdmin: "bg-primary/20 text-primary border-primary/20",
       admin: "bg-primary/10 text-primary border-primary/20",
       editor: "bg-accent text-accent-foreground border-accent",
       viewer: "bg-muted text-muted-foreground border-border",
     };
-    const icons = {
+    const icons: Record<string, React.ReactNode> = {
       SuperAdmin: <Shield className="w-3 h-3" />,
       admin: <Shield className="w-3 h-3" />,
       editor: <Pencil className="w-3 h-3" />,
       viewer: <UserIcon className="w-3 h-3" />,
     };
     return (
-      <Badge variant="outline" className={`gap-1 ${variants[role]}`}>
+      <Badge variant="outline" className={`gap-1 ${variants[role] ?? ""}`}>
         {icons[role]}
         {role.charAt(0).toUpperCase() + role.slice(1)}
       </Badge>
@@ -141,17 +220,12 @@ export default function Users() {
   };
 
   const handleDelete = async (id: string) => {
-    const response = await fetch("/api/admin/users/" + id, {
+    await fetch("/api/admin/users/" + id, {
       method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
     });
-
-    toast({
-      title: "User deleted",
-      description: `User has been removed.`,
-    });
+    toast({ title: "User deleted", description: "User has been removed." });
+    await loadData();
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -165,7 +239,6 @@ export default function Users() {
         return;
       }
 
-      // Extract values if needed
       const body = {
         email: formData.email,
         password: formData.password,
@@ -176,18 +249,12 @@ export default function Users() {
       try {
         const response = await fetch("/api/admin/users", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
 
         if (response.ok) {
-          const result = await response.json();
           setIsDialogOpen(false);
-          console.log("result: ", result);
-        } else {
-          console.log("error");
         }
       } catch (err) {}
 
@@ -211,156 +278,166 @@ export default function Users() {
       />
 
       {/* Search */}
-      <div className="relative mb-6 max-w-md">
+      <div className="relative mb-6 w-full max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
         <Input
           placeholder="Search users..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
+          className="pl-10 w-full"
         />
       </div>
 
-      {/* Table */}
       <div className="bg-card rounded-xl shadow-card border border-border overflow-hidden">
-        <Table>
-          {/* ... your table header and body (same as before) */}
-          <TableBody>
-            {loading ? (
+        {/* ── Desktop Table (md+) ── */}
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
-                  Loading...
-                </TableCell>
+                <TableHead>User</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
-            ) : users.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="text-center py-8 text-muted-foreground"
-                >
-                  No users found
-                </TableCell>
-              </TableRow>
-            ) : (
-              users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-                        <span className="text-sm font-semibold text-accent-foreground">
-                          {user.email.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    <Loader2 className="w-5 h-5 animate-spin inline-block text-muted-foreground" />
+                  </TableCell>
+                </TableRow>
+              ) : users.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="text-center py-8 text-muted-foreground"
+                  >
+                    No users found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center shrink-0">
+                          <span className="text-sm font-semibold text-accent-foreground">
+                            {user.email.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
                         <p className="font-medium text-foreground">
                           {user.email}
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          {user.email}
-                        </p>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getRoleBadge(user.role)}</TableCell>
-                  <TableCell>{getStatusBadge(user.status)}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {new Date(user.createdAt.toString()).toISOString()}
-                  </TableCell>
-
-                  <TableCell className="w-[100px]">
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleOpenDialog(user)}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(user.id.toString())}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-
-        {/* Pagination Controls */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/30">
-          <div className="flex items-center gap-4">
-            <p className="text-sm text-muted-foreground">
-              Page {page} of {totalPages}
-            </p>
-
-            <Select
-              value={limit.toString()}
-              onValueChange={(value) => {
-                setLimit(Number(value));
-                setPage(1); // Reset to first page
-              }}
-            >
-              <SelectTrigger className="w-24">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10 per page</SelectItem>
-                <SelectItem value="20">20 per page</SelectItem>
-                <SelectItem value="50">50 per page</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
-              Previous
-            </Button>
-
-            {/* Optional: Show page numbers */}
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNum = i + 1;
-              return (
-                <Button
-                  key={pageNum}
-                  variant={page === pageNum ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setPage(pageNum)}
-                >
-                  {pageNum}
-                </Button>
-              );
-            })}
-
-            {totalPages > 5 && (
-              <span className="px-3 text-sm text-muted-foreground">...</span>
-            )}
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-            >
-              Next
-            </Button>
-          </div>
+                    </TableCell>
+                    <TableCell>{getRoleBadge(user.role)}</TableCell>
+                    <TableCell>{getStatusBadge(user.status)}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {new Date(user.createdAt.toString()).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="w-[100px]">
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenDialog(user)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(user.id.toString())}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </div>
+
+        {/* ── Mobile Card List (< md) ── */}
+        <div className="block md:hidden divide-y divide-border">
+          {loading ? (
+            <div className="flex justify-center items-center py-10">
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : users.length === 0 ? (
+            <p className="text-center py-10 text-sm text-muted-foreground">
+              No users found
+            </p>
+          ) : (
+            users.map((user) => (
+              <div key={user.id} className="p-4 space-y-3">
+                {/* Avatar + email row */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center shrink-0">
+                    <span className="text-sm font-semibold text-accent-foreground">
+                      {user.email.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground truncate">
+                      {user.email}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(user.createdAt.toString()).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Role + Status badges */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  {getRoleBadge(user.role)}
+                  {getStatusBadge(user.status)}
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-1.5"
+                    onClick={() => handleOpenDialog(user)}
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-1.5 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/5"
+                    onClick={() => handleDelete(user.id.toString())}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Pagination */}
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          limit={limit}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+        />
       </div>
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg w-[calc(100vw-2rem)] mx-auto">
           <DialogHeader>
             <DialogTitle>
               {editingUser ? "Edit User" : "Add New User"}
@@ -396,7 +473,6 @@ export default function Users() {
                 />
               </div>
             )}
-
             {!editingUser && (
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirm password</Label>
@@ -411,14 +487,13 @@ export default function Users() {
                       confirm_password: e.target.value,
                     })
                   }
-                  placeholder="Enter confirm password"
+                  placeholder="Re-enter your password"
                   required
                 />
               </div>
             )}
-
-            {/* Show error if passwords don't match */}
-            {!editingUser  && formData.confirm_password &&
+            {!editingUser &&
+              formData.confirm_password &&
               formData.password !== formData.confirm_password && (
                 <p className="text-sm text-destructive">
                   Passwords do not match
@@ -470,8 +545,15 @@ export default function Users() {
               >
                 Cancel
               </Button>
-              <Button type="submit">
-                {editingUser ? "Update" : "Create"} User
+              <Button type="submit" disabled={loading}>
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving...
+                  </span>
+                ) : (
+                  <>{editingUser ? "Update" : "Create"} User</>
+                )}
               </Button>
             </div>
           </form>

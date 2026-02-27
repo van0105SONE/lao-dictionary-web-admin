@@ -1,7 +1,8 @@
 // src/app/(auth)/login/page.tsx
 "use client";
 
-import { BookOpen, Mail, Lock, ArrowRight } from "lucide-react";
+import { Mail, Lock, ArrowRight } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,8 +64,14 @@ export default function Login() {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md animate-fade-in">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-sky shadow-soft mb-6">
-              <BookOpen className="w-8 h-8 text-primary-foreground" />
+            <div className="inline-flex items-center justify-center mb-6">
+              <Image
+                src="/logo.png"
+                alt="Lao Dictionary Logo"
+                width={80}
+                height={80}
+                className="rounded-2xl object-cover shadow-soft"
+              />
             </div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
               ຍິນດີຕ້ອນຮັບ!

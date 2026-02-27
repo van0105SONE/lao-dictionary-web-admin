@@ -360,7 +360,11 @@ export const wordService = {
         }
       }
 
-      await db.update(dictionary).set(data).where(eq(dictionary.id, id));
+      await db.update(dictionary).set({
+        word: data.word,
+        pronunciation: data.pronunciation,
+        part_of_speech: data.part_of_speech,
+      }).where(eq(dictionary.id, id));
 
       return {
         is_success: true,

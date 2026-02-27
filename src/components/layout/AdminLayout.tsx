@@ -1,17 +1,18 @@
 import { ReactNode, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  BookOpen,
   CheckCircle,
   Users,
   LogOut,
   LayoutDashboard,
   Menu,
   X,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useCurrentUser } from "@/app/hooks/use-current-user";
+import Image from "next/image";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -77,9 +78,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       {/* Mobile Header (only visible on small screens) */}
       <header className="md:hidden flex items-center justify-between p-4 border-b border-border bg-card">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl gradient-sky flex items-center justify-center shadow-soft">
-            <BookOpen className="w-5 h-5 text-primary-foreground" />
-          </div>
+          <Image
+            src="/logo.png"
+            alt="Lao Dictionary Logo"
+            width={40}
+            height={40}
+            className="rounded-xl object-cover"
+          />
           <div>
             <h1 className="font-bold text-foreground">ຄັງຄຳສັບພາສາລາວ</h1>
             <p className="text-xs text-muted-foreground">ໜ້າຈັດການຂໍ້ມູນ</p>
@@ -108,9 +113,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         {/* Logo & Title (Desktop & Mobile when open) */}
         <div className="p-6 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl gradient-sky flex items-center justify-center shadow-soft">
-              <BookOpen className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="Lao Dictionary Logo"
+              width={44}
+              height={44}
+              className="rounded-xl object-cover"
+            />
             <div>
               <h1 className="font-bold text-foreground">ຄັງຄຳສັບພາສາລາວ</h1>
               <p className="text-xs text-muted-foreground">ໜ້າຈັດການຂໍ້ມູນ</p>

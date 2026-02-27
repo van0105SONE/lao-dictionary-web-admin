@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Plus, Search, Pencil, Trash2, Check, X, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -129,30 +129,44 @@ export default function CorrectIncorrect() {
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-      });
+  const loadData = useCallback(
+    async (searchTerm: string = "", currentPage: number = 1) => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: limit.toString(),
+          ...(searchTerm && { search: searchTerm }),
+        });
 
-      const res = await fetch(`/api/admin/correct-incorrect?${params}`);
-      if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
-      setPairs(data.words);
-      setTotalPages(data.pagination.totalPages);
-      setPage(data.pagination.page);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+        const res = await fetch(`/api/admin/correct-incorrect?${params}`);
+        if (!res.ok) throw new Error("Failed to fetch");
+        const data = await res.json();
+        setPairs(data.words);
+        setTotalPages(data.pagination.totalPages);
+        setPage(currentPage);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [limit]
+  );
 
+  // Debounce search
   useEffect(() => {
-    loadData();
-  }, [page, limit]);
+    const timer = setTimeout(() => {
+      setPage(1);
+      loadData(search, 1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search, loadData]);
+
+  // Reload when page or limit changes
+  useEffect(() => {
+    loadData(search, page);
+  }, [page, limit]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleOpenDialog = (pair?: CorrectIncorrectWord) => {
     if (pair) {
@@ -193,7 +207,7 @@ export default function CorrectIncorrect() {
     }
     setLoading(false);
     setIsDialogOpen(false);
-    await loadData();
+    await loadData(search, page);
   };
 
   const handleDelete = async (id: number) => {
@@ -202,7 +216,7 @@ export default function CorrectIncorrect() {
       headers: { "Content-Type": "application/json" },
     });
     toast({ title: "Pair deleted", description: "The word pair has been removed." });
-    await loadData();
+    await loadData(search, page);
   };
 
   return (

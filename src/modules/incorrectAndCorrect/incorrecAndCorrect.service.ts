@@ -2,32 +2,39 @@
 import { db } from "@/db";
 import { correct_and_incorrect, dictionary } from "@/db/schema";
 
-import { count, eq, like } from "drizzle-orm";
+import { count, eq, like, or } from "drizzle-orm";
 
 export const correctIncorrectService = {
   getAllIncorrectAndCorrect: async (search?: string, page = 0, limit = 10) => {
+    const whereCondition = search
+      ? or(
+          like(correct_and_incorrect.correct_word, `%${search}%`),
+          like(correct_and_incorrect.incorrect_word, `%${search}%`)
+        )
+      : undefined;
+
     const totalCountResult = await db
       .select({ count: count() })
-      .from(correct_and_incorrect);
+      .from(correct_and_incorrect)
+      .where(whereCondition);
 
     let query: any = db.select().from(correct_and_incorrect);
 
-    if (search) {
-      query = query.where(
-        like(correct_and_incorrect.correct_word, `%${search}%`)
-      );
+    if (whereCondition) {
+      query = query.where(whereCondition);
     }
 
     let correctIncorrect: any[] = await query
       .limit(limit)
       .offset((page - 1) * limit);
-   const total = totalCountResult[0].count;
+
+    const total = totalCountResult[0].count;
     return {
       words: correctIncorrect,
       pagination: {
         page,
         limit,
-        total: totalCountResult[0].count,
+        total,
         totalPages: Number.isNaN(Math.ceil(Number(total) / limit))
           ? 0
           : Math.ceil(Number(total) / limit),

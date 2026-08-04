@@ -80,16 +80,15 @@ export const correctIncorrectService = {
     data: {
       incorrect_word: string;
       correct_word: string;
-      explaination: string;
+      explanation: string;
     }
   ) => {
-    console.log("update request ====> ", data);
     await db
       .update(correct_and_incorrect)
       .set({
         incorrect_word: data.incorrect_word,
         correct_word: data.correct_word,
-        explanation: data.explaination,
+        explanation: data.explanation,
       })
       .where(eq(correct_and_incorrect.id, id));
   },

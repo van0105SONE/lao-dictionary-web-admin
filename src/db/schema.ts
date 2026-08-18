@@ -26,6 +26,7 @@ export const dictionary = pgTable(
     word: text("word").notNull(),
     pronunciation: text("pronunciation").notNull(),
     part_of_speech: text("part_of_speech"),
+    description: text("description"),
     search_count: integer("search_count"),
     created_at: timestamp().defaultNow().notNull(),
   },
@@ -33,46 +34,6 @@ export const dictionary = pgTable(
     wordIdx: index("dictionary_word_idx").on(table.word), // ← Add this
   })
 );
-
-export const definitions = pgTable("definitions", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  wordId: integer("word_id")
-    .notNull()
-    .references(() => dictionary.id),
-});
-
-export const definitionTexts = pgTable("definition_texts", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-
-  definitionId: integer("definition_id")
-    .notNull()
-    .references(() => definitions.id, { onDelete: "cascade" }),
-
-  kind: text("kind").notNull(),
-  // "meaning" | "note"
-
-  language: text("language").notNull(),
-  // or: languageEnum("language").notNull()
-
-  text: text("text").notNull(),
-});
-
-export const examples = pgTable("examples", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  wordId: integer("word_id")
-    .notNull()
-    .references(() => dictionary.id),
-});
-
-export const exampleSentences = pgTable("example_sentences", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-
-  exampleId: integer("example_id")
-    .notNull()
-    .references(() => examples.id, { onDelete: "cascade" }),
-
-  text: text("text").notNull(),
-});
 
 export const correct_and_incorrect = pgTable(
   "correct_and_incorrect",

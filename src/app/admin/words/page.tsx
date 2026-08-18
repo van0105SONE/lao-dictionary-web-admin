@@ -6,8 +6,6 @@ import {
   Search,
   Pencil,
   Trash2,
-  Globe,
-  MessageSquare,
   Loader2,
 } from "lucide-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
@@ -38,21 +36,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { Word, Definition, Example } from "@/types";
-import { Badge } from "@/components/ui/badge";
+import { Word } from "@/types";
 import { useToast } from "@/app/hooks/use-toast";
-
-const LANGUAGES = [
-  { code: "la", name: "Lao" },
-  { code: "en", name: "English" },
-  { code: "th", name: "Thai" },
-  { code: "zh", name: "Chinese" },
-  { code: "ja", name: "Japanese" },
-  { code: "ko", name: "Korean" },
-  { code: "es", name: "Spanish" },
-  { code: "fr", name: "French" },
-  { code: "de", name: "German" },
-];
 
 export default function Words() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -64,16 +49,8 @@ export default function Words() {
     word: "",
     part_of_speech: "",
     pronunciation: "",
-    definitions: [] as Definition[],
-    examples: [] as Example[],
+    description: "",
   });
-
-  const [definitions, setDefinitions] = useState<Definition[]>([
-    { id: 0, definitionId: 0, language: "la", text: "", kind: "" },
-  ]);
-  const [examples, setExamples] = useState<Example[]>([
-    { id: 0, exampleId: 0, text: "" },
-  ]);
 
   // Pagination state
   const [page, setPage] = useState(1);
@@ -134,110 +111,31 @@ export default function Words() {
       setFormData({
         word: word.word,
         pronunciation: word.pronunciation,
-        part_of_speech: word.part_of_speech,
-        definitions: word.definitions,
-        examples: word.examples,
+        part_of_speech: word.part_of_speech || "",
+        description: word.description || "",
       });
-      setDefinitions(
-        word.definitions.length > 0
-          ? word.definitions
-          : [{ id: 0, definitionId: 0, language: "la", text: "", kind: "" }],
-      );
-      setExamples(
-        word.examples.length > 0
-          ? word.examples
-          : [{ id: 0, exampleId: 0, text: "" }],
-      );
     } else {
       setEditingWord(null);
       setFormData({
         word: "",
         pronunciation: "",
         part_of_speech: "",
-        definitions: [],
-        examples: [],
+        description: "",
       });
-      setDefinitions([
-        { id: 0, definitionId: 0, language: "la", text: "", kind: "" },
-      ]);
-      setExamples([{ id: 0, exampleId: 0, text: "" }]);
     }
     setIsDialogOpen(true);
-  };
-
-  const handleAddDefinition = () => {
-    const usedLanguages = definitions.map((d) => d.language);
-    const availableLanguage = LANGUAGES.find(
-      (l) => !usedLanguages.includes(l.code),
-    );
-    if (availableLanguage) {
-      setDefinitions([
-        ...definitions,
-        {
-          id: 0,
-          definitionId: 0,
-          language: availableLanguage.code,
-          text: "",
-          kind: "",
-        },
-      ]);
-    }
-  };
-
-  const handleRemoveDefinition = (index: number) => {
-    if (definitions.length > 1) {
-      setDefinitions(definitions.filter((_, i) => i !== index));
-    }
-  };
-
-  const handleDefinitionChange = (
-    index: number,
-    field: "language" | "text" | "kind",
-    value: string,
-  ) => {
-    const updated = [...definitions];
-    updated[index] = { ...updated[index], [field]: value };
-    setDefinitions(updated);
-  };
-
-  const handleAddExample = () => {
-    setExamples([...examples, { id: 0, exampleId: 0, text: "" }]);
-  };
-
-  const handleRemoveExample = (index: number) => {
-    if (examples.length > 1) {
-      setExamples(examples.filter((_, i) => i !== index));
-    }
-  };
-
-  const handleExampleChange = (index: number, value: string) => {
-    const updated = [...examples];
-    updated[index].text = value;
-    setExamples(updated);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setIsLoading(true);
-    const examplesArray = examples.filter((ex) => ex.text.trim());
-    const validDefinitions = definitions.filter((d) => d.text.trim());
-
-    if (validDefinitions.length === 0) {
-      toast({
-        title: "Error",
-        description: "At least one definition is required.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     if (editingWord) {
       editingWord.word = formData.word;
       editingWord.pronunciation = formData.pronunciation;
       editingWord.part_of_speech = formData.part_of_speech;
-      editingWord.definitions = validDefinitions;
-      editingWord.examples = examplesArray;
+      editingWord.description = formData.description;
 
       const response = await fetch("/api/admin/words/" + editingWord.id, {
         method: "PUT",
@@ -260,9 +158,6 @@ export default function Words() {
       }
     } else {
       try {
-        formData.examples = examplesArray;
-        formData.definitions = validDefinitions;
-
         const response = await fetch("/api/admin/words", {
           method: "POST",
           headers: {
@@ -316,10 +211,6 @@ export default function Words() {
     }
   };
 
-  const getLanguageName = (code: string) => {
-    return LANGUAGES.find((l) => l.code === code)?.name || code;
-  };
-
   return (
     <AdminLayout>
       <PageHeader
@@ -352,8 +243,7 @@ export default function Words() {
             <TableHeader>
               <TableRow>
                 <TableHead>ຄຳສັບ</TableHead>
-                <TableHead>ນິຍາມ</TableHead>
-                <TableHead>ຕົວຢ່າງ</TableHead>
+                <TableHead>ຄຳອະທິບາຍ</TableHead>
                 <TableHead className="w-[100px]">ຈັດການ</TableHead>
               </TableRow>
             </TableHeader>
@@ -364,27 +254,7 @@ export default function Words() {
                     {word.word}
                   </TableCell>
                   <TableCell className="max-w-md">
-                    <div className="space-y-1">
-                      {word.definitions.slice(0, 2).map((def, idx) => (
-                        <div key={idx} className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs shrink-0">
-                            {getLanguageName(def.language)}
-                          </Badge>
-                          <span className="truncate text-sm">{def.text}</span>
-                        </div>
-                      ))}
-                      {word.definitions.length > 2 && (
-                        <span className="text-xs text-muted-foreground">
-                          +{word.definitions.length - 2} more
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">
-                      {word.examples.length} example
-                      {word.examples.length !== 1 ? "s" : ""}
-                    </span>
+                    <span className="truncate text-sm">{word.description}</span>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
@@ -410,7 +280,7 @@ export default function Words() {
               {words.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={4}
+                    colSpan={3}
                     className="text-center py-8 text-muted-foreground"
                   >
                     ບໍ່ພົບຄຳສັບ
@@ -433,7 +303,7 @@ export default function Words() {
                 key={word.id}
                 className="bg-muted/40 rounded-lg border border-border/50 p-4 space-y-3"
               >
-                {/* Word and Language Badges */}
+                {/* Word and Actions */}
                 <div className="space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold text-base text-primary break-words flex-1">
@@ -472,59 +342,16 @@ export default function Words() {
                   </div>
                 </div>
 
-                {/* Definitions Section */}
-                {word.definitions.length > 0 && (
+                {/* Description Section */}
+                {word.description && (
                   <div className="border-t border-border/30 pt-3 space-y-2">
                     <p className="text-xs font-medium text-muted-foreground">
-                      ຄຳນິຍາມ ({word.definitions.length})
+                      ຄຳອະທິບາຍ
                     </p>
                     <div className="space-y-2">
-                      {word.definitions.slice(0, 3).map((def, idx) => (
-                        <div key={idx} className="text-xs">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="outline" className="text-xs h-5">
-                              {getLanguageName(def.language)}
-                            </Badge>
-                            {def.kind && (
-                              <span className="text-muted-foreground text-[10px]">
-                                ({def.kind})
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-foreground line-clamp-2">
-                            {def.text}
-                          </p>
-                        </div>
-                      ))}
-                      {word.definitions.length > 3 && (
-                        <p className="text-xs text-muted-foreground">
-                          +{word.definitions.length - 3} ຄຳນິຍາມອື່ນ
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Examples Section */}
-                {word.examples.length > 0 && (
-                  <div className="border-t border-border/30 pt-3 space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      ຕົວຢ່າງ ({word.examples.length})
-                    </p>
-                    <div className="space-y-1">
-                      {word.examples.slice(0, 2).map((example, idx) => (
-                        <p
-                          key={idx}
-                          className="text-xs text-foreground line-clamp-2"
-                        >
-                          {idx + 1}. {example.text}
-                        </p>
-                      ))}
-                      {word.examples.length > 2 && (
-                        <p className="text-xs text-muted-foreground">
-                          +{word.examples.length - 2} ຕົວຢ່າງອື່ນ
-                        </p>
-                      )}
+                      <p className="text-foreground text-xs line-clamp-3">
+                        {word.description}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -533,7 +360,6 @@ export default function Words() {
           )}
         </div>
         {/* Pagination Controls */}
-        {/* Mobile-Friendly Pagination */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t border-border bg-muted/30">
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto text-center sm:text-left">
             <p className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
@@ -653,146 +479,18 @@ export default function Words() {
                 required
               />
             </div>
-            {/* Multi-language Definitions */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="flex items-center gap-2">
-                  <Globe className="w-4 h-4" />
-                  ຄວາມໝາຍ
-                </Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddDefinition}
-                  disabled={definitions.length >= LANGUAGES.length}
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  ຄວາມໝາຍພາສາໃໝ່
-                </Button>
-              </div>
-
-              <div className="space-y-4">
-                {definitions.map((def, index) => (
-                  <div
-                    key={index}
-                    className="p-4 bg-muted/50 rounded-lg border border-border/50 space-y-3"
-                  >
-                    {/* Language Selector + Part of Speech + Remove */}
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      {/* Language */}
-                      <div className="flex-1 sm:max-w-32">
-                        <Select
-                          value={def.language}
-                          onValueChange={(value) =>
-                            handleDefinitionChange(index, "language", value)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {LANGUAGES.map((lang) => (
-                              <SelectItem key={lang.code} value={lang.code}>
-                                {lang.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Part of Speech for this definition */}
-                      <div className="flex-1">
-                        <Input
-                          placeholder="Part of speech (e.g. noun, verb)"
-                          value={def.kind || ""}
-                          onChange={(e) =>
-                            handleDefinitionChange(
-                              index,
-                              "kind",
-                              e.target.value,
-                            )
-                          }
-                        />
-                      </div>
-
-                      {/* Remove button */}
-                      {definitions.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveDefinition(index)}
-                          className="shrink-0 text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-
-                    {/* Definition Text */}
-                    <Textarea
-                      value={def.text}
-                      onChange={(e) =>
-                        handleDefinitionChange(index, "text", e.target.value)
-                      }
-                      placeholder={`Definition in ${getLanguageName(
-                        def.language,
-                      )}`}
-                      className="min-h-[80px]"
-                      required
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Examples List */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  ຕົວຢ່າງ
-                </Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddExample}
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  ເພີ່ມຕົວຢ່າງ
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                {examples.map((example, index) => (
-                  <div key={index} className="flex gap-2 items-center">
-                    <span className="text-sm text-muted-foreground w-6 shrink-0">
-                      {index + 1}.
-                    </span>
-                    <Input
-                      value={example.text}
-                      onChange={(e) =>
-                        handleExampleChange(index, e.target.value)
-                      }
-                      placeholder={`Example sentence ${index + 1}`}
-                      className="flex-1"
-                    />
-                    {examples.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveExample(index)}
-                        className="shrink-0 text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">ຄຳອະທິບາຍ</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                placeholder="Enter the description"
+                className="min-h-[80px]"
+                required
+              />
             </div>
             <div className="flex justify-end gap-3 pt-4">
               {isLoading ? (
@@ -812,7 +510,7 @@ export default function Words() {
                   >
                     ຍົກເລີກ
                   </Button>
-                  <Button type="submit" className="px-2">
+                  <Button type="submit" className="px-2 ml-2">
                     {editingWord ? "ອັບເດດ" : "ເພີ່ມ"}ຄຳສັບ
                   </Button>
                 </div>

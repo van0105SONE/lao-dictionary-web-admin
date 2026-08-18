@@ -1,13 +1,13 @@
 "use client";
 
-import { BookOpen, CheckCircle, Users, TrendingUp } from "lucide-react";
+import { BookOpen, CheckCircle, Users } from "lucide-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useEffect, useState } from "react";
 import { Statistic, Word } from "@/types";
 
-const STAT_ICONS = [BookOpen, CheckCircle, Users, TrendingUp];
-const STAT_LABELS = ["Total Words", "Correct/Incorrect", "Active Users", "Examples Added"];
+const STAT_ICONS = [BookOpen, CheckCircle, Users];
+const STAT_LABELS = ["Total Words", "Correct/Incorrect", "Active Users"];
 
 function StatSkeleton() {
   return (
@@ -67,7 +67,6 @@ export default function Dashboard() {
         { label: "Total Words", value: data.total_word, icon: BookOpen },
         { label: "Correct/Incorrect", value: data.total_incorrect, icon: CheckCircle },
         { label: "Active Users", value: data.total_active_user, icon: Users },
-        { label: "Examples Added", value: data.total_example, icon: TrendingUp },
       ]);
     } catch (err) {
       console.error("Dashboard load error:", err);
@@ -88,7 +87,7 @@ export default function Dashboard() {
       />
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {loading
           ? STAT_LABELS.map((label) => <StatSkeleton key={label} />)
           : stats.map((stat, index) => {

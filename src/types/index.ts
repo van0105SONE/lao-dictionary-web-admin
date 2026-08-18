@@ -1,24 +1,9 @@
-export interface Definition {
-  language: string;
-  text: string;
-  kind: string;
-  definitionId: number;
-  id: number;
-}
-
-export interface Example {
-  text: string;
-  exampleId: number;
-  id: number;
-}
-
 export interface Word {
   id: number;
   word: string;
   part_of_speech: string;
   pronunciation: string;
-  definitions: Definition[];
-  examples: Example[];
+  description: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,7 +21,6 @@ export interface Statistic {
   total_active_user: number;
   total_word: number;
   total_incorrect: number;
-  total_example: number;
 }
 
 export interface User {

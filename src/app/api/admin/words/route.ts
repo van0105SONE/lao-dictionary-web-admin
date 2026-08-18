@@ -40,21 +40,11 @@ export async function POST(request: Request) {
     });
   }
 
-  const definitions: { language: string; text: string, kind: string }[] = body["definitions"];
-  const examples = body["examples"];
-
   const response = await wordService.createWord({
     word: body["word"],
     part_of_speech: body["part_of_speech"],
     pronuncation: body["pronunciation"],
-    definitions: definitions.map((item) => {
-      return {
-        language: item.language,
-        text: item.text,
-        kind: item.kind
-      };
-    }),
-    examples: examples,
+    description: body["description"],
   });
 
   return NextResponse.json({

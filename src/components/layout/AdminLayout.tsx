@@ -9,6 +9,7 @@ import {
   X,
   BookOpen,
   Receipt,
+  UserRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -42,6 +43,12 @@ const navItems = [
     path: "/admin/users",
     label: "ຜູ້ໃຊ້ງານ",
     icon: Users,
+    roles: ["superadmin"],
+  },
+  {
+    path: "/admin/customers",
+    label: "ລູກຄ້າ",
+    icon: UserRound,
     roles: ["superadmin"],
   },
   {
